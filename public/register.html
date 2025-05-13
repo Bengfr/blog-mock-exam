@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Dashboard Sign up</h1>
+        <form action="http://localhost:8080/users/signup" method="POST" class="mt-4">
+            <div class="mb-3">
+                <label for="signupUsername" class="form-label">Username</label>
+                <input type="text" class="form-control" id="signupUsername" name="signupUsername" aria-label="Enter your Username"required>
+            </div>
+
+            <div class="mb-3">
+                <label for="signupEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="signupEmail" name="signupEmail" aria-label="Enter your Email" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="signupPassword" class="form-label">Password</label>
+                <input type="signupPassword" class="form-control" id="signupPassword" name="signupPassword" aria-label="Enter your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" aria-label="Sign up">Sign up</button>
+
+            <div class="mt-3">
+                <label class="label" for="">
+                    Already have an account? <a href="login.html" data-bs-toggle="modal" aria-label="Go to the Login page">Login here</a>
+                </label>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
