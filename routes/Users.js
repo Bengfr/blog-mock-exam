@@ -21,6 +21,15 @@ router.get('/', async (req, res) => { // Get all users
     }
 });
 
+// --------------------Get User-------------------------//
+
+router.get('/session', (req, res) => { // Get the current user session
+    if (req.session.user) {
+        res.status(200).json({ user: req.session.user });
+    } else {
+        res.status(401).json({ error: 'User not logged in' });
+    }
+});
 
 // --------------------Signup-------------------------//
 router.post('/signup', async (req, res) => { // Sign up a new user
@@ -74,7 +83,6 @@ router.post('/login', async (req, res) => {
             UserName: user.recordset[0].UserName,
             Email: user.recordset[0].Email,
         };
-        req.session.isLoggedIn = true; // Set the login status
         console.log('User logged in successfully:', req.session.user);
 
 
@@ -94,8 +102,7 @@ router.get('/logout', (req, res) => {
             return res.status(500).json({ error: 'Internal server error' });
         }
         // Redirect to the login page
-        res.redirect('/login.html');
-        connsole.log('User logged out successfully');
+        console.log('User logged out successfully');
     });
 });
 

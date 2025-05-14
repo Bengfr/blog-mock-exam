@@ -21,6 +21,9 @@ app.use(
 const usersRouter = require('./routes/Users');
 app.use('/users', usersRouter);
 
+const postsRouter = require('./routes/posts');
+app.use('/api/posts', postsRouter); // Register posts router under /api/posts
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
