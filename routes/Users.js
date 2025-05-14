@@ -21,6 +21,7 @@ router.get('/', async (req, res) => { // Get all users
     }
 });
 
+
 // --------------------Signup-------------------------//
 router.post('/signup', async (req, res) => { // Sign up a new user
     const { signupUsername, signupEmail, signupPassword } = req.body;
@@ -46,14 +47,14 @@ router.post('/signup', async (req, res) => { // Sign up a new user
 
 });
 // --------------------Login-------------------------//
-router.post('/login', async (req, res) => { // Login a user
+router.post('/login', async (req, res) => {
     const { loginEmail, loginPassword } = req.body;
 
     try {
         const pool = await poolPromise;
         const user = await pool.request()
             .input('Email', sql.NVarChar, loginEmail)
-            .query('SELECT TOP 1 Email, Password FROM BLOG_Users WHERE Email = @Email');
+            .query('SELECT TOP 1 User_ID, UserName, Email, Password FROM BLOG_Users WHERE Email = @Email');
 
         // Check if the user exists
         if (user.recordset.length === 0) {
@@ -67,14 +68,17 @@ router.post('/login', async (req, res) => { // Login a user
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Successful login
+        // Store User_ID, Email, and UserName in the session
         req.session.user = {
             User_ID: user.recordset[0].User_ID,
             UserName: user.recordset[0].UserName,
             Email: user.recordset[0].Email,
         };
+        req.session.isLoggedIn = true; // Set the login status
+        console.log('User logged in successfully:', req.session.user);
 
-        return res.redirect('/home.html');
+
+        // Redirect to the home page
     } catch (error) {
         console.error('Error logging in:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -82,27 +86,20 @@ router.post('/login', async (req, res) => { // Login a user
 });
 
 // --------------------Logout-------------------------//
-router.post('/logout', (req, res) => {
+router.get('/logout', (req, res) => {
+    // Destroy the session
     req.session.destroy((err) => {
         if (err) {
-            console.error('Error logging out:', err);
-            return res.status(500).json({ error: 'Failed to log out' });
+            console.error('Error destroying session:', err);
+            return res.status(500).json({ error: 'Internal server error' });
         }
-        res.redirect('/login.html'); // Redirect to login page after logout
+        // Redirect to the login page
+        res.redirect('/login.html');
+        connsole.log('User logged out successfully');
     });
 });
 
 
-function isAuthenticated(req, res, next) {
-    if (req.session.user) {
-        // User is authenticated
-        return next();
-    } else {
-        // User is not authenticated, redirect to login page
-        return res.redirect('/login.html');
-    }
-}
 
 
-
-module.exports = router, isAuthenticated; // Export the router and the isAuthenticated middleware
+module.exports = router; // Export the router
