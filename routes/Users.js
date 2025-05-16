@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const argon2 = require('argon2');
 const { sql, poolPromise } = require('../db');
+const { authenticateToken } = require('../middleware/auth'); // Import the middleware
+const jwt = require('jsonwebtoken');
 
-router.get('/', async (req, res) => { // Get all users
+router.get('/', authenticateToken, async (req, res) => { // Get all users
 
     try {
         const pool = await poolPromise; // Get the connection pool
@@ -21,15 +23,6 @@ router.get('/', async (req, res) => { // Get all users
     }
 });
 
-// --------------------Get User-------------------------//
-
-router.get('/session', (req, res) => { // Get the current user session
-    if (req.session.user) {
-        res.status(200).json({ user: req.session.user });
-    } else {
-        res.status(401).json({ error: 'User not logged in' });
-    }
-});
 
 // --------------------Signup-------------------------//
 router.post('/signup', async (req, res) => { // Sign up a new user
@@ -39,7 +32,7 @@ router.post('/signup', async (req, res) => { // Sign up a new user
     if (!signupUsername || !signupEmail || !signupPassword) {
         return res.status(400).json({ error: 'All fields are required' });
     }
-    // Hash the password befrore storing it
+    // Hash the password before storing it
     const hashedPassword = await argon2.hash(signupPassword);
     try {
         const pool = await poolPromise;
@@ -58,55 +51,41 @@ router.post('/signup', async (req, res) => { // Sign up a new user
 // --------------------Login-------------------------//
 router.post('/login', async (req, res) => {
     const { loginEmail, loginPassword } = req.body;
+    if (!loginEmail || !loginPassword) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
 
     try {
         const pool = await poolPromise;
-        const user = await pool.request()
+        const result = await pool.request()
             .input('Email', sql.NVarChar, loginEmail)
             .query('SELECT TOP 1 User_ID, UserName, Email, Password FROM BLOG_Users WHERE Email = @Email');
 
-        // Check if the user exists
-        if (user.recordset.length === 0) {
+        if (result.recordset.length === 0) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        // Verify the password
-        const isPasswordValid = await argon2.verify(user.recordset[0].Password, loginPassword);
+        const isPasswordValid = await argon2.verify(result.recordset[0].Password, loginPassword);
 
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Store User_ID, Email, and UserName in the session
-        req.session.user = {
-            User_ID: user.recordset[0].User_ID,
-            UserName: user.recordset[0].UserName,
-            Email: user.recordset[0].Email,
+        // Create JWT token
+        const user = {
+            userId: result.recordset[0].User_ID,
+            userName: result.recordset[0].UserName,
+            email: result.recordset[0].Email
         };
-        console.log('User logged in successfully:', req.session.user);
+        const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET); // Token expires in 30minutes
 
-
-        // Redirect to the home page
+        // Send token to client
+        return res.json({ accessToken });
     } catch (error) {
         console.error('Error logging in:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
-// --------------------Logout-------------------------//
-router.get('/logout', (req, res) => {
-    // Destroy the session
-    req.session.destroy((err) => {
-        if (err) {
-            console.error('Error destroying session:', err);
-            return res.status(500).json({ error: 'Internal server error' });
-        }
-        // Redirect to the login page
-        console.log('User logged out successfully');
-    });
-});
-
-
 
 
 module.exports = router; // Export the router

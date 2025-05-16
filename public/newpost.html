@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Blog</title>
-
+    <title>New posts</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
-    <script defer src="./js/explore.js"></script>
-    <script defer src="./js/delete.js"></script>
+    <script src="./js/newpost.js" defer></script>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -24,23 +22,30 @@
           <a class="nav-link" id="UserName">UserName</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active fw-bold" href="home.html">Explore</a>
+          <a class="nav-link" href="home.html">Explore</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="newpost.html">Create Post</a>
+          <a class="nav-link active fw-bold" href="#">Create Post</a>
         </li>
       </ul>
     </div>
   </div>
 </nav>
 
-
-<div class="container-fluid my-2">
-  <h1 class="mb-4">Blogs :D</h1>
-  <div id="posts-container" class="row g-4">
-    <!-- Cards will be dynamically added here -->
-  </div>
+<div class="container mt-5">
+    <h1 class="text-center">Create new post</h1>
+    <form class="mt-4" id="newPostForm">
+        <div class="mb-3">
+            <label for="postTitle" class="form-label">Title</label>
+            <input type="text" class="form-control" id="postTitle" name="postTitle" aria-label="Enter a title" required>
+        </div>
+        <div class="form-group">
+            <label for="contentArea">Content</label>
+            <textarea class="form-control" id="contentArea" rows="3"></textarea>
+        </div>
+        <button type="submit" class=" mt-2 btn btn-primary" aria-label="Create new post">Create new posts</button>
+    </form>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 </body>
 </html>

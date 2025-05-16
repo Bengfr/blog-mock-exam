@@ -1,7 +1,7 @@
 const sql = require('mssql/msnodesqlv8');
 const config = {
-  server: '.',
-  database: 'blog',
+  server: process.env.DB_SERVER, // Use environment variable to localhost
+  database: process.env.DB_NAME, // Use environment variable to your database name
   options: {
     trustedConnection: true, // Set to true if using Windows Authentication
     trustServerCertificate: true, // Set to true if using self-signed certificates
