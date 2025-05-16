@@ -41,16 +41,14 @@ router.post('/newpost', authenticateToken, async (req, res) => {
 
 // Delete post (protected)
 router.post('/deletepost', authenticateToken, async (req, res) => {
-    const { post_ID } = req.body;
-    const userId = req.user.userId; // From decoded JWT
-
+    const { post } = req.body; // <-- Match frontend key!
+    const userId = req.user.userId;
     try {
         const pool = await poolPromise;
         await pool.request()
-        
-            .input('Post_ID', sql.Int, post)
             .input('User_ID', sql.Int, userId)
-            .query('EXEC astp_BLOG_RemoveBlogPost (@Post_ID, @User_ID)');
+            .input('Post_ID', sql.Int, post)
+            .query('EXEC astp_BLOG_RemoveBlogPost @User_ID, @Post_ID');
         res.status(201).json({ message: 'Post deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting post', error: error.message });

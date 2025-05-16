@@ -8,15 +8,9 @@ function parseJwt(token) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Fetch the username from the session and replaces the placeholder with the acual username. good for checking if the user is logged in or not.
-  const token = localStorage.getItem('accessToken');
-  const user = parseJwt(token);
-  if (user && user.userName) {
-      const userNameElement = document.getElementById('UserName');
-      if (userNameElement) userNameElement.textContent = user.userName;
-  }
-    
-  fetch('/api/posts') // Fetch data from the backend API
+  // ...username logic...
+
+  fetch('/api/posts')
     .then(res => res.json())
     .then(response => {
       if (response.data && response.data.length > 0) {
@@ -30,8 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="d-flex justify-content-between align-items-start">
                   <h5 class="card-title fw-bold">${post.Title}</h5>
                   <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-primary edit-btn">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger delete-btn onclick="deleteMyPost"">Delete</button>
+                    <button class="btn btn-sm btn-outline-primary">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger delete-btn" data-post-id="${post.Post_ID}">Delete</button>
                   </div>
                 </div>
                 <p class="card-text">By ${post.UserName}</p>
@@ -41,9 +35,43 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           `;
-
           container.appendChild(card);
         });
+
+        // Attach delete logic
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const postId = btn.getAttribute('data-post-id');
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+              alert('You must be logged in to delete a post.');
+              return;
+            }
+            if (!confirm('Are you sure you want to delete this post?')) return;
+
+            try {
+              const response = await fetch('/api/posts/deletepost', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ post: postId })
+              });
+              const result = await response.json();
+              if (response.ok) {
+                alert(result.message);
+                window.location.reload();
+              } else {
+                alert(result.error || 'Error deleting post');
+              }
+            } catch (err) {
+              console.error('Fetch error:', err);
+              alert('Network error or server is down.');
+            }
+          });
+        });
+
       } else {
         console.error('No posts found.');
       }
@@ -52,35 +80,3 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error loading posts:', err);
     });
 });
-
-
-function deleteMyPost (){ 
-    const token = localStorage.getItem('accessToken');
-    const user = parseJwt(token);
-    if (!user) {
-        alert('You must be logged in to delete a post.');
-        return;
-    }
-    const post_ID = this.parentElement.parentElement.parentElement.querySelector('.card-title').textContent;
-    console.log('Post ID:', post_ID);
-    fetch('/api/posts/deletepost', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ post_ID })
-    })
-    .then(res => res.json())
-    .then(response => {
-        if (response.message) {
-            alert(response.message);
-            window.location.reload();
-        } else {
-            alert(response.error || 'Error deleting post');
-        }
-    })
-    .catch(err => {
-        console.error('Error deleting post:', err);
-    });
-}
