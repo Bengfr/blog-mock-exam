@@ -24,8 +24,7 @@ router.get('/', async (req, res) => {
 // Create new post (protected)
 router.post('/newpost', authenticateToken, async (req, res) => {
     const { title, description } = req.body; // <-- Match frontend keys!
-    const userId = req.user.userId; // From decoded JWT
-    console.log('userId:', userId, 'title:', title, 'description:', description);
+    const userId = req.user.userId; // From JWT
     try {
         const pool = await poolPromise;
         await pool.request()
@@ -54,5 +53,44 @@ router.post('/deletepost', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Error deleting post', error: error.message });
     }
 });
+// like post (protected)
+router.post('/likepost', authenticateToken, async (req, res) => {
+    const { post } = req.body;
+    const userId = req.user.userId;
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('User_ID', sql.Int, userId)
+            .input('Post_ID', sql.Int, post)
+            .query('EXEC astp_BLOG_NewPostLikes @User_ID, @Post_ID');
+        const newLikeCount = result.recordset[0]?.LikeCount;
+        res.status(201).json({ message: 'Post liked successfully', newLikeCount });
+    } catch (error) {
+        res.status(500).json({ message: 'Error liking post', error: error.message });
+    }
+});
+
+// edit post (protected)
+router.post('/editpost', authenticateToken, async (req, res) => {
+    const {post, title, description } = req.body; // <-- Match frontend keys!
+    const userId = req.user.userId; // From JWT
+    console.log('User ID:', userId);
+    console.log('Post ID:', post);
+    console.log('Title:', title);
+    console.log('Description:', description);
+    try {
+        const pool = await poolPromise;
+        await pool.request()
+            .input('User_ID', sql.Int, userId)
+            .input('Post_ID', sql.Int, post)
+            .input('Title', sql.NVarChar, title)
+            .input('Description', sql.NVarChar, description)
+            .query('EXEC astp_BLOG_UpdateBlogPost  @User_ID, @post_ID, @Title, @Description');
+        res.status(201).json({ message: 'Post edited successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating post', error: error.message });
+    }
+});
+
 
 module.exports = router;
